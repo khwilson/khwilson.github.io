@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: 
+
+Sitemap: http://khwilson.github.io/sitemap.xml 
