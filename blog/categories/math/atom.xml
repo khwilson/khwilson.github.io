@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Random Thoughts]]></title>
-  <link href="http://khwilson.github.io/atom.xml" rel="self"/>
+  <title><![CDATA[Category: Math | Random Thoughts]]></title>
+  <link href="http://khwilson.github.io/blog/categories/math/atom.xml" rel="self"/>
   <link href="http://khwilson.github.io/"/>
   <updated>2014-05-30T14:39:05-04:00</updated>
   <id>http://khwilson.github.io/</id>
@@ -174,7 +174,7 @@ and the basic building blocks of much of the internet&rsquo;s security.</p>
 of a prime number (a number that has only 1 and itself as divisors) and look
 for analogies in other, more esoteric number systems. They then hope that those
 analogies will tell us more about the prime numbers themselves. For instance,
-this line of inquiry really drove Andrew Wiles&#8217; work on Fermat&rsquo;s Last Theorem.</p>
+this line of inquiry really drove Andrew Wiles' work on Fermat&rsquo;s Last Theorem.</p>
 
 <p>I approached it <em>analytically</em>. You see, it turns out that while we completely
 understand prime numbers <em>multiplicatively</em>, we don&rsquo;t really understand them
@@ -183,24 +183,20 @@ whose <em>difference</em> is 2. But we do know that the number of primes less th
 grows like x / log(x).</p>
 
 <p>This is typically proven by looking at the so-called zeta function, which is
-defined as</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>zeta(s) = sum 1/n^s</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Do you remember the p-test from calculus? Well, that says that this sum
+defined as
+<code>
+zeta(s) = sum 1/n^s
+</code>
+Do you remember the p-test from calculus? Well, that says that this sum
 converges for $s > 1$, but that it goes to infinity if <code>s==1</code>. So it turns out
 we write it down a different way that is defined for every complex number <code>s != 1</code>
 agrees with the above definition for $s > 1$.</p>
 
-<p>But now it turns out that we can write this sum a different way:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>zeta(s) = sum 1/n^s = prod 1/(1 - p^(-s))</span></code></pre></td></tr></table></div></figure>
-
-
-<p>where the product is over all <em>prime</em> numbers. (Here you might want to let them work out
+<p>But now it turns out that we can write this sum a different way:
+<code>
+zeta(s) = sum 1/n^s = prod 1/(1 - p^(-s))
+</code>
+where the product is over all <em>prime</em> numbers. (Here you might want to let them work out
 the first few terms, but otherwise leave as an exercise.)</p>
 
 <p>A couple observations: We now have a direct, functional link between addition
@@ -210,13 +206,11 @@ its power, note that if there were a <em>finite</em> number of primes, that prod
 would converge at $s = 1$. But we know it does not by the p-test. So that means
 that this equality alone has proven that there are an infinite number of primes.</p>
 
-<p>Now it turns out that the conjecture that</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>\pi(x) ~ x / log(x) + O(x^(1/2 + eps)</span></code></pre></td></tr></table></div></figure>
-
-
-<p>is <strong>equivalent</strong> to the statement that, in that alternative way of writing it,
+<p>Now it turns out that the conjecture that
+<code>
+\pi(x) ~ x / log(x) + O(x^(1/2 + eps)
+</code>
+is <strong>equivalent</strong> to the statement that, in that alternative way of writing it,
 <code>zeta(s)</code> is finite everywhere but <code>s == 1</code> and <code>zeta(s) === 0</code> only if the
 real part of <code>s</code> is <code>1/2</code>. This is the Riemann Hypothesis.</p>
 
