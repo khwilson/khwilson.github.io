@@ -203,8 +203,12 @@ def pretty_pictures():
 
 # Give things informative names
 
-* Names should have meaning to the intended readers
-* `i` for the imaginary constant is OK, `alpha` with a reference to a specific paper is not
+* Names should have meaning to the intended readers, e.g.,
+  * You a week from now
+  * Your teammates tomorrow
+  * Your future teammates who have to deal with your code
+* `i`, `j`, `k` for iterators are OK, `alpha` with a reference to a specific paper is not
+* kwargs are a great place to name things
 * Do not fear long names; you have autocomplete
 
 ---
@@ -284,7 +288,7 @@ def precipitation_in_chicago():
 * Every function should have a docstring
 * The docstring should
   1. Describe the function briefly
-  2. Explicitly document the inputs with `:param type name: description`
+  2. Explicitly document the inputs with .red[`:param type name: description`]
   3. Explicitly document the return value with `:returns: description`
   4. Explicitly document the return type with `:rtype:`
 
