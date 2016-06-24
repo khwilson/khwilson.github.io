@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Title</title>
+    <meta charset="utf-8">
+    <script src="/js/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body { font-family: 'Droid Serif'; }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle
+
+# Control Flow and Scope
+
+---
+
+# Definitions
+
+Control Flow
+
+* How the program counter moves around
+* Affecting the status of the stack
+* What am I doing right now and why
+
+---
+
+# Definitions
+
+## Scope
+
+* What counts as a 'block'
+* What is accessible where
+* How many instances are there of a thing?
+
+---
+
+# Control Flow Statements
+
+* def
+* if/elif/else
+* while/else
+* for/else
+* try/except/else/finally
+
+---
+
+# `def`
+
+```python
+def add_two(x):
+    """ Add two to x """
+    return x + 2
+```
+
+---
+
+# `def`
+
+```python
+def add_two_if_positive(x):
+    """ Add two to x if it is positive """
+    if x > 0:
+        return x + 2
+    raise ValueError("x must be positive not {}".format(x))
+```
+
+---
+
+# `def`
+
+```python
+def add_two_to_file_rows(filename):
+    """ Add two to every row in a file cast as an int.
+    If uncastable, skip it.
+
+    :param str filename: The filename to open
+    :yield: each row plus 2 if it is an int
+    :ytype: int
+    """
+    with open(filename, 'r') as f:
+        for line in f:
+            line = line.strip()
+            try:
+                yield int(line) + 2
+            except ValueError:
+                pass
+```
+
+---
+
+# Aside: Why might you use a generator?
+
+---
+
+# Aside: Why might you use a generator?
+
+* Laziness
+* Cleanup
+
+---
+
+# Aside: Context Managers
+
+You can use generators for cleanup by using them in conjuction with context managers
+
+```python
+from contextlib import contextmanager
+from subprocess import Popen
+from tempfile import mkdtemp
+import shutil
+
+@contextmanager
+def start_server(host, port):
+    tmpdir = mkdtemp()
+    p = Popen(['server', 'serve', '--host', host, '--port', str(port),
+               '--cache', tmpdir])
+    yield tmpdir
+    p.kill()
+    shutil.rmtree(tmpdir)
+
+with start_server('localhost', 47474) as cache_dir:
+    requests.post('http://localhost:47474', json={"key": 10})
+    assert os.path.isfile(os.path.join(cache_dir, "key"))
+```
+
+---
+
+# `if/elif/else`
+
+```python
+if x < 0:
+    print("Negative")
+elif x == 0:
+    print("Zero")
+elif x > 0:
+    print("Positive")
+else:
+    raise ValueError
+```
+
+---
+
+# `while/else`
+
+We all know what `while` loops do, but there is a valid use of `else`:
+
+```python
+if a > b:
+    b, a = a, b
+while a > 1:
+    a, b = b % a, a
+    if a == 0:
+        print("Not coprime")
+        break
+else:
+    print("Coprime")
+```
+
+---
+
+# `while/else`
+
+* The `else` statement is useful when you're searching for something.
+* It is almost always used in conjunction with a `break` statement that will cause it not to run
+* Otherwise it runs, even if the loop never runs
+
+---
+
+# `while/else`
+
+# NEVER USE IT!!!
+
+## Make a function instead
+
+---
+
+# `for/else`
+
+`for` loops in Python are *always* what we might call `foreach` loops in other languages.
+
+* This is one reason why they're super slow
+
+---
+
+# `for/else`
+
+```ruby
+l = [1, 2, 3]
+list_iter = iter(l)
+next(l)
+```
+
+---
+
+# `for/else`
+
+Mechanically, all for loops (even in comprehensions) work by calling `next` on an iterator until `StopIteration` is raised
+
+---
+
+# Aside: This is also how generators work
+
+```ruby
+def add_two_to_list(x):
+    for elt in x:
+        yield x + 2
+
+list_iter = add_two_to_list([1, 2, 3])
+next(list_iter)
+```
+
+---
+
+# `for/else`
+
+So how do I get a traditional `for(int i = 0; i < list.size; ++i)` loop?
+
+```python
+elt_to_idx = defaultdict(list)
+for i, elt in enumerate(l):
+    elt_to_idx[elt].append(i)
+```
+
+---
+
+# `try/except/else/finally`
+
+Goal: Get as many and as few blocks to run as possible here by manipulating the try block
+
+```ruby
+try:
+    raise KeyError
+except ValueError:
+    print("ValueError")
+else:
+    print("Else")
+finally:
+    print("Finally")
+```
+
+---
+
+# Scope
+
+Two major concepts:
+* What enters the scope?
+* What exits the scope?
+
+---
+
+# Exit: Try it out
+
+Try creating variables inside of blocks and accessing them outside of blocks:
+
+```python
+if True:
+    x = 10
+print(x)
+```
+
+Do the same for `def`, `if`, `while`, `for`, `try`.
+
+---
+
+# Exit the scope?
+
+* `def`: No
+* `if`: Yes
+* `while`: Yes
+* `for`: Yes
+* `try`: Yes
+
+---
+
+# Terrible things to note
+
+What is printed?
+
+```ruby
+for i in range(10):
+  x = 2 * i
+print(x + i)
+```
+
+---
+
+# Terrible things to note
+
+What is printed?
+
+```ruby
+the_list = [i + 1 for i in range(20)]
+print(i)
+```
+
+---
+
+# Entry: rvals
+
+Try reading variables inside of blocks like:
+
+```python
+>>> x = 10
+>>> if True:
+...     print(x)
+```
+
+Change `if` to `def`, `while`, `for`, `try`.
+
+---
+
+# Enters the scope (rvals)?
+
+* `def`: Yes
+* `if`: Yes
+* `while`: Yes
+* `for`: Yes
+* `try`: Yes
+
+---
+
+# What happens with `def`?
+
+What happens if we change `x` with the `def` statement?
+
+```ruby
+x = 10
+def f()
+    print(x)
+```
+
+---
+
+# What about closures?
+
+Use `class`es
+
+* Note, the JavaScript syntax will also work
+* But we don't do that because it's terrible
+* JavaScript does it because of the wonky object model
+
+---
+
+# Enters the scope (lvals)?
+
+Same exercise, with lvals!
+
+```python
+>>> x = 10
+>>> if True:
+...   x = 20
+>>> print(x)
+```
+
+---
+
+# Enters the scope (lvals)?
+
+* `def`: No
+* `if`: Yes
+* `while`: Yes
+* `for`: Yes
+* `try`: Yes
+
+---
+
+# But I WANT to set globals!!!
+
+No you don't
+
+---
+
+# I know what I'm doing!!!
+
+I doubt it
+
+---
+
+# No, seriously
+
+Fine
+
+---
+
+# Accessing the global scope in `def`s
+
+* `global`
+* `nonlocal` (Python 3 only)
+
+---
+
+# Accessing the global scope in `def`s
+
+* `global`
+* `nonlocal` (Python 3 only)
+
+Differ in how they trace through code (top-down versus bottom-up)
+</textarea>
+
+    <script src="https://gnab.github.io/remark/downloads/remark-latest.min.js">
+    </script>
+    <script>
+      var slideshow = remark.create();
+    </script>
+    <script>
+      $(".ruby").each(function(idx, elt) {
+        var $pre = $(elt).parent();
+        var $slide = $pre.parent();
+        var output = [];
+        $(elt).find("div").each(function(idx, elt) {
+          output.push(elt.innerText);
+        });
+        $pre.remove();
+      $slide.keyup(function(e) { e.stopPropagation(); })
+             .keypress(function(e) {e.stopPropagation(); })
+             .keydown(function(e) {e.stopPropagation(); });
+      $("<iframe>", {
+        src: 'test.html?text=' + encodeURIComponent(output.join("\n")),
+        frameBorder: '0',
+        width: '100%'
+      }).appendTo($slide)
+        .css('height', $(window).height() - 40)});
+    </script>
+  </body>
+</html>
