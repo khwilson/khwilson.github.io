@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Title</title>
+    <meta charset="utf-8">
+    <script src="/js/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body { font-family: 'Droid Serif'; }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+      }
+      .remark-slide-content { font-size: 24px; }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; font-size: 20px; }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle
+
+# Writing Good Classes
+
+---
+
+# What is a class?
+
+---
+
+# What is a class?
+
+* An *object*.
+  * Maintains state
+  * Has functions which operate on that state
+* Used to *organize* state and consequences
+
+---
+
+# Why objects?
+
+* Names state
+* Scopes state
+* Tightly couples operations to state (good way of "typing")
+
+---
+
+# Example
+
+Pros and cons of the following:
+
+```python
+def fit_model(data):
+    model = Model(data)
+    model.fit()
+    return {'accuracy': accuracy(model), 'auc': auc(model)}
+```
+
+```python
+class Metrics(object):
+    def __init__(self, model):
+        self.model = model
+        self.accuracy = accuracy(model)
+        self.auc = auc(model)
+
+def fit_model(data):
+    model = Model(data)
+    model.fit()
+    return Metrics(model)
+```
+
+---
+
+# For the super experts
+
+Use `@property` for lazy computation. (For more information, look up
+"descriptors")
+
+```python
+class Metrics(object):
+    def __init__(self, model):
+        self.model = model
+        self._accuracy = None
+        self._auc = None
+
+    @property
+    def accuracy(self):
+        if self._accuracy is None:
+            self._accuracy = compute_accuracy(self.model)
+        return self._accuracy
+
+    @property
+    def auc(self):
+        if self._accuracy is None:
+            self._accuracy = compute_accuracy(self.model)
+        return self._accuracy
+```
+
+---
+
+# What is a function?
+
+* Performs an action, potentially on arguments, and potentially returns a value
+* In Python, functions are also objects
+
+```python
+def f(a, b, c=10, d=20):
+    print(a + b + c + d)
+
+dir(f)
+```
+
+---
+
+# What is a function?
+
+Let's explore some of these attributes of functions:
+
+---
+
+# What is a function?
+
+Let's explore some of these attributes of functions:
+
+* `__code__`: The "reified" code of the function
+  * `f.__code__.co_varnames`: The variable names
+  * `f.__code__.co_names`: The local names to resolve at call time
+* `f.__defaults__`: The defaults of kwargs
+  * Counted backwards from `f.__code__.co_varnames`
+* `f.__dir__`: The function that's called when you call `dir(f)`
+
+---
+
+# Aside: A point about Python
+
+This illustrates several points about Python:
+
+* Everything is mutable
+* Defaults are attached *to the function*
+
+---
+
+# Aside: A point about Python
+
+Takeaway point because of defaults being attached to the function:
+
+### Never make keyword arguments mutable
+
+```python
+def f(x=[]):
+    x.append(len(x))
+    print(sum(x))
+
+f()
+f()
+f()
+```
+
+---
+
+# So what's a class?
+
+* Functions are really just special classes
+* Everything in python is an object
+* Objects can also be functions!
+
+```python
+class Klass(object):
+    def __call__(self, x):
+        print(x)
+
+Klass()(10)
+```
+
+---
+
+# Duck typing
+
+If it looks like a duck and quacks like a duck, then it is probably a duck.
+
+* All interactions with objects in Python are really calls to magic functions
+* Magic functions are typically surrounded by `__`:
+  * `__call__`: `f()`
+  * `__getitem__`: `f[]`
+  * `__getattr__`: `f.attribute`
+  * `__setattr__`: `f.attribute = 10`
+* Seriously every interaction
+
+---
+
+# Duck typing
+
+* Upside: Super flexible
+* Downside: Super slow
+  * Literally done by string matching in a diciontary
+  * Then loaded into memory
+  * Precludes naive compilation strategies
+
+---
+
+# Aside: A quick consequence
+
+Use *literals* and not names:
+* `{a, b, c}` is preferable to `set([a, b, c])`.
+* `{'a': 1, 'b': 2}` is preferable to `dict(a=1, b=2)`.
+
+---
+
+# OK, so let's write some classes
+
+The anatomy of a class:
+
+```python
+class DBConfig(object):
+    def __init__(self, host, database, user, password=None, port=5432):
+        self.host = host
+        self.database = database
+        self.user = user
+        self.password = password
+        self.port = port
+
+    def get_port(self):
+        return self.port
+
+config = DBConfig('postgres.whatever.com', 'mydb', 'theuser')
+print(f.get_port())
+```
+
+---
+
+# Parts of a class
+
+* `class` keyword
+* `object` keyword
+* `__init__` function
+* `self`
+* `.`
+
+---
+
+# On your own
+
+* Create the class
+* Try settting and getting various attributes
+* What if the attribute isn't defined?
+
+---
+
+# On your own
+
+Add a function that turns the `DBConfig` class into a connection string:
+
+```
+postgresql://user:password@host:port/database
+```
+
+---
+
+# Example of magic functions
+
+Turn your config into a context manager!
+
+```python
+with DBConfig(database, host, user) as engine:
+    engine.execute('SELECT * FROM some_table;')
+```
+
+---
+
+# Example of magic functions
+
+The magic functions:
+* `__enter__(self)` is called upon *entering* the `with` block
+* `__exit__(self, type, value, traceback)` is called on *exiting* the `with` block
+
+---
+
+# Example of magic functions
+
+Add the ability to get attributes by `[]`:
+
+* `config['database'] == config.database`
+* Hint `__getitem__(self, key)`.
+
+---
+
+# Example of magic functions
+
+Add the ability to get attributes by `[]`.
+
+* `config['database'] == config.database`
+
+```python
+class DBConfig(object):
+
+    # what we've done
+
+    def __getitem__(self, key):
+        try:
+            return getattr(self, key)
+        except AttributeError:
+            raise KeyError("No such key {}".format(key))
+```
+
+---
+
+# Make it a map using mixins
+
+---
+
+# Make it a map using mixins
+
+ Mixins are "classes" you can inherit from that have default method implementations that rely on other methods.
+
+* In Java called "interfaces with default methods" (Java 8+)
+* In Scala called "traits"
+* In Haskell, works with `|` and composition of functors
+* In JavaScript, called "prototype extensions"
+
+---
+
+# Make it a map using mixins
+
+In Python, there are nice mixins in `collections.abc` (Python 3.3+) or `collections`
+
+Can find list [here](https://docs.python.org/3/library/collections.abc.html)
+
+---
+
+# Make it a map using mixins
+
+For a `Mapping`, we need to implement:
+* `__getitem__`
+* `__iter__`
+* `__len__`
+
+and get in return:
+* `__contains__`
+* `keys`
+* `items`
+* `values`
+* `get`
+* `__eq__`
+* `__ne__`
+
+---
+
+# Make it a map using mixins
+
+```python
+from collections import Mapping
+
+class DBConfig(Mapping):
+
+    # what we've done
+
+    def __len__(self):
+        return 5
+
+    def __iter__(self):
+        return iter(['host', 'database', 'user', 'password', 'port'])
+```
+</textarea>
+
+    <script src="https://gnab.github.io/remark/downloads/remark-latest.min.js">
+    </script>
+    <script>
+      var slideshow = remark.create();
+    </script>
+    <script>
+      $(".ruby").each(function(idx, elt) {
+        var $pre = $(elt).parent();
+        var $slide = $pre.parent();
+        var output = [];
+        $(elt).find("div").each(function(idx, elt) {
+          output.push(elt.innerText);
+        });
+        $pre.remove();
+      $slide.keyup(function(e) { e.stopPropagation(); })
+             .keypress(function(e) {e.stopPropagation(); })
+             .keydown(function(e) {e.stopPropagation(); });
+      $("<iframe>", {
+        src: 'test.html?text=' + encodeURIComponent(output.join("\n")),
+        frameBorder: '0',
+        width: '100%'
+      }).appendTo($slide)
+        .css('height', $(window).height() - 40)});
+    </script>
+  </body>
+</html>
