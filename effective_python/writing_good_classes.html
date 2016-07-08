@@ -94,9 +94,9 @@ class Metrics(object):
 
     @property
     def auc(self):
-        if self._accuracy is None:
-            self._accuracy = compute_accuracy(self.model)
-        return self._accuracy
+        if self._auc is None:
+            self._auc = compute_auc(self.model)
+        return self._auc
 ```
 
 ---
@@ -226,7 +226,7 @@ class DBConfig(object):
         return self.port
 
 config = DBConfig('postgres.whatever.com', 'mydb', 'theuser')
-print(f.get_port())
+print(config.get_port())
 ```
 
 ---
