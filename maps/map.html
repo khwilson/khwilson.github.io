@@ -7,6 +7,15 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <style>
+      h2.instructions {
+        font-size: 14px;
+        font-weight: bold;
+      }
+
+      p.instructions {
+        font-size: 10px;
+      }
+
       .dem-95 { fill: rgb(42,161,236); stroke: #ccf; stroke-width: .5px; }
       .dem-90 { fill: rgb(79,169,238); stroke: #ccf; stroke-width: .5px; }
       .dem-85 { fill: rgb(105,178,240); stroke: #ccf; stroke-width: .5px; }
@@ -31,7 +40,64 @@
       .dem-45 { fill: rgb(255,231,225); stroke: #fcc; stroke-width: .5px; }
       .dem-greater-than-50 { fill: #fff; stroke: #fcc; stroke-width: .5px; }
 
-    .state-boundary {
+      .dem-95-state { fill: rgb(42,161,236); stroke: #000; stroke-width: .5px; }
+      .dem-90-state { fill: rgb(79,169,238); stroke: #000; stroke-width: .5px; }
+      .dem-85-state { fill: rgb(105,178,240); stroke: #000; stroke-width: .5px; }
+      .dem-80-state { fill: rgb(125,185,242); stroke: #000; stroke-width: .5px; }
+      .dem-75-state { fill: rgb(144,194,243); stroke: #000; stroke-width: .5px; }
+      .dem-70-state { fill: rgb(162,203,245); stroke: #000; stroke-width: .5px; }
+      .dem-65-state { fill: rgb(178,211,247); stroke: #000; stroke-width: .5px; }
+      .dem-60-state { fill: rgb(194,220,249); stroke: #000; stroke-width: .5px; }
+      .dem-55-state { fill: rgb(210,228,250); stroke: #000; stroke-width: .5px; }
+      .dem-50-state { fill: rgb(226,237,252); stroke: #000; stroke-width: .5px; }
+
+      .dem-0-state { fill: rgb(254,106,89); stroke: #000; stroke-width: .5px; }
+      .dem-5-state { fill: rgb(255,122,104); stroke: #000; stroke-width: .5px; }
+      .dem-10-state { fill: rgb(255,139,120); stroke: #000; stroke-width: .5px; }
+      .dem-15-state { fill: rgb(255,153,135); stroke: #000; stroke-width: .5px; }
+      .dem-20-state { fill: rgb(255,167,150); stroke: #000; stroke-width: .5px; }
+      .dem-25-state { fill: rgb(255,180,166); stroke: #000; stroke-width: .5px; }
+      .dem-30-state { fill: rgb(255,194,181); stroke: #000; stroke-width: .5px; }
+      .dem-35-state { fill: rgb(255,206,196); stroke: #000; stroke-width: .5px; }
+      .dem-40-state { fill: rgb(255,219,210); stroke: #000; stroke-width: .5px; }
+      .dem-45-state { fill: rgb(255,231,225); stroke: #000; stroke-width: .5px; }
+
+  .ev-bar {
+    width: 100%;
+    height: 25px;
+  }
+
+  .ev-bar:after {
+    content: "";
+    position: absolute;
+    z-index=-1;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    border-left: 2px solid #000;
+  }
+
+  .ev-bar-dem-total {
+    float: left;
+    padding: 4px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    stroke: #000;
+    stroke-width: .5px;
+  }
+
+  .ev-bar-gop-total {
+    float: right;
+    padding: 4px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    stroke: #000;
+    stroke-width: .5px;
+  }
+
+    .state-boundary-filled {
       fill: none;
       stroke: #000;
       stroke-width: 1px;
@@ -104,13 +170,102 @@
     </style>
   </head>
 <body>
+
+<div class="container">
+  <div class="row">
+    <div class="col-sm-12">
+      <div class="ev-bar">
+        <div class='ev-bar-dem-total'></div>
+        <div class='ev-bar-gop-total'></div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+     <div class="col-sm-10">
+       <svg></svg>
+     </div>
+     <div class="col-sm-2">
+      <button type="button" class="btn btn-primary" id="switchModeButton">Dropoff</button>
+      <button type="button" class="btn btn-primary" id="countyModeButton">Hide Counties</button>
+      <h2 class="instructions">Instructions</h2>
+      <p class="instructions">Choose some counties</p>
+      <p class="instructions">Click the Dropoff button</p>
+      <p class="instructions">Click new state</p>
+    </div>
+  </div>
+  </div class="row">
+    <div class="col-sm-12">
+      <table class="table table-striped">
+        <thead>
+          <td>State</td>
+          <td>Population</td>
+          <td>Electors</td>
+          <td>Democrat</td>
+          <td>GOP</td>
+          <td>Libertarian</td>
+          <td>Green</td>
+          <td>Evan</td>
+          <td>Other</td>
+        </thead>
+        <tbody id="states"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <script src="js/d3.v3.min.js"></script>
 <script src="js/topojson.v1.min.js"></script>
 <script>
 
-var currentMode = 'pickup';
+var numberToLetter = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+                      'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
 
-var width = 960,
+var letterToNumber = {};
+for (let i=0; i<numberToLetter.length; ++i) {
+  letterToNumber[numberToLetter[i]] = i;
+}
+
+var us = null;
+
+var currentMode = 'pickup';
+var countyMode = 'show';
+var showStateColors = true;
+
+var switchModeButton = d3.select('#switchModeButton').html('Dropoff');
+var switchModeFunction = function() {
+  if (currentMode === 'pickup') {
+    switchModeButton.html('Cancel dropoff').classed('btn-primary', false).classed('btn-warning', true);
+    currentMode = 'dropoff';
+  } else {
+    switchModeButton.html('Dropoff').classed('btn-primary', true).classed('btn-warning', false);
+    currentMode = 'pickup';
+  }
+}
+switchModeButton.on('click', switchModeFunction);
+
+var countyModeButton = d3.select("#countyModeButton").html("Hide Counties");
+var countyModeFunction = function () {
+  if (countyMode === 'show') {
+    countyMode = 'hide';
+    countyModeButton.html("Hide Colors");
+    d3.selectAll("path").remove();
+    update();
+  } else if (countyMode === 'hide' && showStateColors) {
+    showStateColors = false;
+    countyModeButton.html("Show Counties");
+    d3.selectAll("path").remove();
+    update();
+  } else {
+    countyMode = 'show';
+    showStateColors = true;
+    countyModeButton.html("Hide Counties");
+    d3.selectAll("path").remove();
+    update();
+  }
+}
+countyModeButton.on('click', countyModeFunction);
+
+var width = 960;
     height = 500;
 
 var path = d3.geo.path();
@@ -126,10 +281,7 @@ tooltipTr.append('th').html('Candidate');
 tooltipTr.append('th').html('Votes');
 var tooltipTbody = tooltipTable.append('tbody');
 
-
-var svg = d3.select("body").append("svg")
-    .attr("width", width)
-    .attr("height", height);
+var svg = d3.select("svg").attr('width', '100%').attr('viewBox', '0 0 ' + width + ' ' + height);
 
 var countyToState = {}
 var stateTotals = {}
@@ -142,6 +294,11 @@ var STATE_ABBREVS = [
   'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI',
   'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI',
   'WY'];
+
+var stateToNumber = {};
+for (let i=0; i<STATE_ABBREVS.length; ++i) {
+  stateToNumber[STATE_ABBREVS[i]] = i;
+}
 
 var computeElectors = function() {
   let priorities = [];
@@ -201,8 +358,11 @@ var getColorClass = function(d) {
           return "black";
         }
       }
+var intWithCommas = function(d) {
+  return d.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
 
-var update = function(us) {
+var update = function() {
   computeElectors();
   var tr = d3.select('#states')
     .selectAll("tr")
@@ -216,7 +376,7 @@ var update = function(us) {
         })
   td.enter()
     .append("td")
-  td.text(function (d, i) { return d.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); })
+  td.text(function (d, i) { return intWithCommas(d); })
     .attr("color", function(d, i) {
       if (i === 0) {
         return stateTotals[d].dem > stateTotals[d].gop ? "blue" : "red";
@@ -227,20 +387,24 @@ var update = function(us) {
   td.exit().remove();
   tr.exit().remove();
 
-  let mapPath = svg.selectAll("path")
+  let mapPath;
+
+  if (countyMode === 'show') {
+    mapPath = svg.selectAll("path.county-path")
      .data(topojson.feature(us, us.objects.counties).features);
 
   mapPath
      .enter().append("path")
      .attr("d", path)
-     .classed('county-path', true)
      .on("click", function(d) {
         if (currentMode === 'pickup') {
           let me = d3.select(this);
           if (me.classed('selection-color')) {
-            me.attr("class", getColorClass(d));
+            me.classed(getColorClass(d), true);
+            me.classed("selection-color", false);
           } else {
-            me.attr("class", 'selection-color');
+            me.classed(getColorClass(d), false);
+            me.classed("selection-color", true);
           }
         } else if (currentMode === 'dropoff') {
           let newState = d.properties.state;
@@ -255,8 +419,8 @@ var update = function(us) {
                 oldStateData[key] -= hasOrZero(dd.properties, key);
               }
             });
-          update(us);
-          currentMode = 'pickup';
+          update();
+          switchModeFunction();
         }
       })
      .on('mousemove', function(d) {
@@ -264,7 +428,7 @@ var update = function(us) {
         return parseInt(d);
        });
        tooltip.classed('hidden', false)
-         .attr('style', 'left:' + (mouse[0] + 15) + 'px; top:' + (mouse[1] - 35) + 'px');
+         .attr('style', 'left:' + (d3.event.pageX + 15) + 'px; top:' + (d3.event.pageY - 15) + 'px');
        })
      .on('mouseover', function(d) {
        let theHeading = tooltipTitle.selectAll("h2").data([d.properties.name])
@@ -275,20 +439,19 @@ var update = function(us) {
        theData.enter().append('tr')
        let theRow = theData.selectAll("td").data(function(dd, i) { return dd; })
        theRow.enter().append('td');
-       theRow.html(function(elt) { return elt; });
+       theRow.html(function(elt, i) { return i === 0 ? elt : intWithCommas(elt); })
        theRow.exit().remove();
        theData.exit().remove();
      })
      .on('mouseout', function() {
        tooltip.classed('hidden', true);
      });
+  mapPath.attr("class", function(d) { return "county-path " + getColorClass(d); })
+
+  }
 
   let demTotal = 0;
   let gopTotal = 3; // AK is not fixed yet
-  mapPath
-     .attr("class", getColorClass)
-
-
 
   mapPath = svg.selectAll("path.state-boundary")
     .data(d3.nest()
@@ -296,9 +459,22 @@ var update = function(us) {
             .entries(us.objects.counties.geometries));
 
   mapPath.enter().append("path")
-    .attr("class", "state-boundary");
+    .attr("class", "state-boundary state-boundary-filled");
 
   mapPath.attr("d", function(d) { return path(topojson.merge(us, d.values)); });
+  if (countyMode === 'hide' && showStateColors) {
+    mapPath.attr('class', function (d) {
+      if (stateTotals.hasOwnProperty(d.key)) {
+        let s = stateTotals[d.key];
+        let dem = hasOrZero(s, 'dem');
+        let gop = hasOrZero(s, 'gop');
+        let demPercent = Math.floor(dem / (dem + gop) * 20) * 5;
+        return "state-boundary dem-" + demPercent + '-state';
+      } else {
+        return 'state-boundary';
+      }
+    });
+  }
 
   let count = 0;
   for (let state of STATE_ABBREVS) {
@@ -311,12 +487,67 @@ var update = function(us) {
     }
   }
 
-  $("#totals-dem").text(demTotal);
-  $("#totals-gop").text(gopTotal);
+  d3.select('.ev-bar').attr('style', 'background: linear-gradient(to right, #179ee0 0%, #179ee0 ' + (demTotal / 538 * 100) + '%, #ff5d40 ' + (demTotal / 538 * 100) + '%, #ff5d40 100%)');
+  $(".ev-bar-dem-total").text(demTotal);
+  $(".ev-bar-gop-total").text(gopTotal);
 }
 
-d3.json("data/us.json", function(error, us) {
+var getParameterByName = function (name, url) {
+    if (!url) {
+      url = window.location.href;
+    }
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+
+var doShare = function() {
+  us.objects.counties.geometries.sort(function(x, y) {
+    if (x.id < y.id) {
+      return -1;
+    } else if (x.id > y.id) {
+      return 1;
+    } else {
+      return 0;
+    }
+  });
+  shareUrl = [];
+  for (let geom of us.objects.counties.geometries) {
+    if (geom.hasOwnProperty('properties')) {
+      shareUrl.push(numberToLetter[stateToNumber[geom.properties.state]]);
+    } else {
+      shareUrl.push(numberToLetter[51]);
+    }
+  }
+  return window.location.href + '?share=' + shareUrl.join('');
+}
+
+d3.json("data/us.json", function(error, usData) {
   if (error) throw error;
+  us = usData;
+
+  let shareParameter = getParameterByName('share');
+  if (shareParameter) {
+    us.objects.counties.geometries.sort(function(x, y) {
+      if (x.id < y.id) {
+        return -1;
+      } else if (x.id > y.id) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
+    for (let i=0; i<shareParameter.length; ++i) {
+      let num = letterToNumber[shareParameter[i]];
+      let geom = us.objects.counties.geometries[i];
+      if (num !== 51 && geom && geom.hasOwnProperty('properties')) {
+        geom.properties.state = STATE_ABBREVS[num];
+      }
+    }
+  }
 
   for (let i=0; i<us.objects.counties.geometries.length; ++i) {
     let county = us.objects.counties.geometries[i];
@@ -341,55 +572,10 @@ d3.json("data/us.json", function(error, us) {
     state.oth += hasOrZero(county.properties, 'oth');
   }
 
-  update(us);
-
+  update();
 
 });
 
 </script>
 
-
-<div class="container">
-  <div class="row">
-    <div class="col-sm-12">
-    </div>
-  </div>
-  <div class="row">
-     <div class="col-sm-10">
-       <svg></svg>
-     </div>
-     <div class="col-sm-2">
-      <table class="table">
-        <thead>
-          <td>Clinton</td>
-          <td>Trump</td>
-        </thead>
-      </thead>
-      <tbody id="totals">
-        <td id="totals-dem"></td>
-        <td id="totals-gop"></td>
-      </tbody>
-    </table>
-    <button onclick="currentMode='pickup';">Pickup</button>
-    <button onclick="currentMode='dropoff';">Drop Off</button>
-  </div>
-  </div class="row">
-    <div class="col-sm-12">
-      <table class="table table-striped">
-        <thead>
-          <td>State</td>
-          <td>Population</td>
-          <td>Electors</td>
-          <td>Democrat</td>
-          <td>GOP</td>
-          <td>Libertarian</td>
-          <td>Green</td>
-          <td>Evan</td>
-          <td>Other</td>
-        </thead>
-        <tbody id="states"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
 </html>
